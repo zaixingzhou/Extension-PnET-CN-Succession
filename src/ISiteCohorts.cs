@@ -10,7 +10,7 @@ namespace Landis.Extension.Succession.BiomassPnET
         float[] NetPsn { get; }
 
         float[] MaintResp{ get; }
-
+        
         float[] GrossPsn{ get; }
 
         float[] FolResp { get; }
@@ -54,7 +54,7 @@ namespace Landis.Extension.Succession.BiomassPnET
 
         int AgeMax { get; }
 
-        float WaterMax { get; }
+        ushort WaterMax { get; }
 
         uint BelowGroundBiomass { get; }
 

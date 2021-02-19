@@ -19,7 +19,7 @@ namespace Landis.Extension.Succession.BiomassPnET
         private float _rootingdepth;
         private string _soiltype;
         private float _leakagefrac;
-        private float _runoffcapture;
+        private float _runofffrac;
         private float _fieldcap;
         private float _wiltpnt;
         private float _porosity;
@@ -28,7 +28,6 @@ namespace Landis.Extension.Succession.BiomassPnET
         private int _precipEvents;
         private float _leakageFrostDepth;
         private float _winterSTD;
-        private float _mossDepth;
         IEcoregionPnETVariables _variables;
         #endregion
 
@@ -43,14 +42,13 @@ namespace Landis.Extension.Succession.BiomassPnET
         private static Landis.Library.Parameters.Ecoregions.AuxParm<float> precintconst;
         private static Landis.Library.Parameters.Ecoregions.AuxParm<float> preclossfrac;
         private static Landis.Library.Parameters.Ecoregions.AuxParm<float> leakagefrac;
-        private static Landis.Library.Parameters.Ecoregions.AuxParm<float> runoffcapture;
+        private static Landis.Library.Parameters.Ecoregions.AuxParm<float> runofffrac;
         private static Landis.Library.Parameters.Ecoregions.AuxParm<float> snowsublimfrac;
         private static Landis.Library.Parameters.Ecoregions.AuxParm<string> climateFileName;
         private static Landis.Library.Parameters.Ecoregions.AuxParm<float> latitude;
         private static Landis.Library.Parameters.Ecoregions.AuxParm<int> precipEvents;
         private static Landis.Library.Parameters.Ecoregions.AuxParm<float> leakageFrostDepth;
         private static Landis.Library.Parameters.Ecoregions.AuxParm<float> winterSTD;
-        private static Landis.Library.Parameters.Ecoregions.AuxParm<float> mossDepth;
         #endregion
 
         #region accessors for private static variables
@@ -123,11 +121,11 @@ namespace Landis.Extension.Succession.BiomassPnET
                 return _leakagefrac;
             }
         }
-        public float RunoffCapture
+        public float RunoffFrac
         {
             get
             {
-                return _runoffcapture;
+                return _runofffrac;
             }
         }
         public float PrecIntConst
@@ -226,13 +224,6 @@ namespace Landis.Extension.Succession.BiomassPnET
             get
             {
                 return _winterSTD;
-            }
-        }
-        public float MossDepth
-        {
-            get
-            {
-                return _mossDepth;
             }
         }
         #endregion
@@ -338,13 +329,12 @@ namespace Landis.Extension.Succession.BiomassPnET
             leakageFrostDepth = (Landis.Library.Parameters.Ecoregions.AuxParm<float>)(Parameter<float>)PlugIn.GetParameter("LeakageFrostDepth", 0, 999999);
             precipEvents = (Landis.Library.Parameters.Ecoregions.AuxParm<int>)(Parameter<int>)PlugIn.GetParameter("PrecipEvents", 1, 100);
             winterSTD = (Landis.Library.Parameters.Ecoregions.AuxParm<float>)(Parameter<float>)PlugIn.GetParameter("WinterSTD", 0, 100);
-            mossDepth = (Landis.Library.Parameters.Ecoregions.AuxParm<float>)(Parameter<float>)PlugIn.GetParameter("MossDepth", 0, 1000);
 
             wythers = ((Parameter<bool>)PlugIn.GetParameter("Wythers")).Value;
             dtemp = ((Parameter<bool>)PlugIn.GetParameter("DTemp")).Value;
             
             leakagefrac = (Landis.Library.Parameters.Ecoregions.AuxParm<float>)(Parameter<float>)PlugIn.GetParameter("LeakageFrac", 0, 1);
-            runoffcapture = (Landis.Library.Parameters.Ecoregions.AuxParm<float>)(Parameter<float>)PlugIn.GetParameter(Names.RunoffCapture, 0, 999999);
+            runofffrac = (Landis.Library.Parameters.Ecoregions.AuxParm<float>)(Parameter<float>)PlugIn.GetParameter("RunoffFrac", 0, 1);
             AllEcoregions = new Dictionary<IEcoregion, IEcoregionPnET>();
             foreach (IEcoregion ecoregion in PlugIn.ModelCore.Ecoregions)
             {
@@ -366,13 +356,12 @@ namespace Landis.Extension.Succession.BiomassPnET
             this._precintconst = precintconst[ecoregion];
             this._preclossfrac = preclossfrac[ecoregion];
             this._leakagefrac = leakagefrac[ecoregion];
-            this._runoffcapture = runoffcapture[ecoregion];
+            this._runofffrac = runofffrac[ecoregion];
             this._snowsublimfrac = snowsublimfrac[ecoregion];
             this._latitude = latitude[ecoregion];
             this._precipEvents = precipEvents[ecoregion];
             this._leakageFrostDepth = leakageFrostDepth[ecoregion];
             this._winterSTD = winterSTD[ecoregion];
-            this._mossDepth = mossDepth[ecoregion];
           
         }
     }

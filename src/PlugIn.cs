@@ -43,8 +43,6 @@ namespace Landis.Extension.Succession.BiomassPnET
         public static ISiteVar<Landis.Library.Biomass.Pool> WoodyDebris;
         public static ISiteVar<Landis.Library.Biomass.Pool> Litter;
         public static ISiteVar<Double> FineFuels;
-        public static ISiteVar<float> PressureHead;
-        public static ISiteVar<float> ExtremeMinTemp;
         public static DateTime Date;
         public static ICore ModelCore;
         private static ISiteVar<SiteCohorts> sitecohorts;
@@ -57,7 +55,7 @@ namespace Landis.Extension.Succession.BiomassPnET
         private ICommunity initialCommunity;
         public static int CohortBinSize;
 
-        private static SortedDictionary<string, Parameter<string>> parameters = new SortedDictionary<string, Parameter<string>>(StringComparer.InvariantCultureIgnoreCase);
+        private static SortedDictionary<string, Parameter<string>> parameters = new SortedDictionary<string, Parameter<string>>(StringComparer.InvariantCultureIgnoreCase); // key is case insensitive
         MyClock m = null;
 
         public static bool TryGetParameter(string label, out Parameter<string> parameter)
@@ -79,7 +77,7 @@ namespace Landis.Extension.Succession.BiomassPnET
 
         public static Parameter<string> GetParameter(string label)
         {
-            if (parameters.ContainsKey(label) == false)
+            if (parameters.ContainsKey(label) == false) //case insensitive
             {
                 throw new System.Exception("No value provided for parameter " + label);
             }
@@ -286,8 +284,6 @@ namespace Landis.Extension.Succession.BiomassPnET
             WoodyDebris = PlugIn.ModelCore.Landscape.NewSiteVar<Landis.Library.Biomass.Pool>();
             sitecohorts = PlugIn.ModelCore.Landscape.NewSiteVar<SiteCohorts>();
             FineFuels = ModelCore.Landscape.NewSiteVar<Double>();
-            PressureHead = ModelCore.Landscape.NewSiteVar<float>();
-            ExtremeMinTemp = ModelCore.Landscape.NewSiteVar<float>();
             Landis.Utilities.Directory.EnsureExists("output");
 
             Timestep = ((Parameter<int>)GetParameter(Names.Timestep)).Value;
@@ -380,7 +376,6 @@ namespace Landis.Extension.Succession.BiomassPnET
             ModelCore.RegisterSiteVar(biomassCohorts, "Succession.BiomassCohorts");
             ModelCore.RegisterSiteVar(WoodyDebris, "Succession.WoodyDebris");
             ModelCore.RegisterSiteVar(Litter, "Succession.Litter");
-            
 
             ISiteVar<Landis.Library.AgeOnlyCohorts.ISiteCohorts> AgeCohortSiteVar = PlugIn.ModelCore.Landscape.NewSiteVar<Landis.Library.AgeOnlyCohorts.ISiteCohorts>();
             ISiteVar<ISiteCohorts> PnETCohorts = PlugIn.ModelCore.Landscape.NewSiteVar<ISiteCohorts>();
@@ -391,24 +386,13 @@ namespace Landis.Extension.Succession.BiomassPnET
                 AgeCohortSiteVar[site] = sitecohorts[site];
                 PnETCohorts[site] = sitecohorts[site];
                 FineFuels[site] = Litter[site].Mass;
-                IEcoregionPnET ecoregion = EcoregionPnET.GetPnETEcoregion(PlugIn.ModelCore.Ecoregion[site]);
-                IHydrology hydrology = new Hydrology(ecoregion.FieldCap);
-                PressureHead[site] = hydrology.GetPressureHead(ecoregion);
-                if (UsingClimateLibrary)
-                {
-                    ExtremeMinTemp[site] = ((float)Enumerable.Min(Climate.Future_MonthlyData[Climate.Future_MonthlyData.Keys.Min()][ecoregion.Index].MonthlyTemp) - (float)(3.0 * ecoregion.WinterSTD));  
-                }
-                else
-                {
-                    ExtremeMinTemp[site] = 999;
-                }
             }
 
             ModelCore.RegisterSiteVar(AgeCohortSiteVar, "Succession.AgeCohorts");
             ModelCore.RegisterSiteVar(PnETCohorts, "Succession.CohortsPnET");
             ModelCore.RegisterSiteVar(FineFuels, "Succession.FineFuels");
-            ModelCore.RegisterSiteVar(PressureHead, "Succession.PressureHead");
-            ModelCore.RegisterSiteVar(ExtremeMinTemp, "Succession.ExtremeMinTemp");
+
+
 
         }
 
@@ -435,46 +419,32 @@ namespace Landis.Extension.Succession.BiomassPnET
         public void AddNewCohort(ISpecies species, ActiveSite site, string reproductionType)
         {
             ISpeciesPNET spc = PlugIn.SpeciesPnET[species];
-            bool addCohort = true;
-            if (sitecohorts[site].cohorts.ContainsKey(species))
-            {
-                // This should deliver only one KeyValuePair
-                KeyValuePair<ISpecies, List<Cohort>> i = new List<KeyValuePair<ISpecies, List<Cohort>>>(sitecohorts[site].cohorts.Where(o => o.Key == species))[0];
-                List<Cohort> Cohorts = new List<Cohort>(i.Value.Where(o => o.Age < CohortBinSize));
-                if (Cohorts.Count() > 0)
-                {
-                    addCohort = false;
-                }
-            }
-            bool addSiteOutput = false;
-            addSiteOutput = (SiteOutputNames.ContainsKey(site) && addCohort);
-            Cohort cohort = new Cohort(spc, (ushort)Date.Year, (addSiteOutput) ? SiteOutputNames[site] : null);
+            Cohort cohort = new Cohort(spc, (ushort)Date.Year, (SiteOutputNames.ContainsKey(site)) ? SiteOutputNames[site] : null);
             
-            addCohort = sitecohorts[site].AddNewCohort(cohort);
+            sitecohorts[site].AddNewCohort(cohort);
 
-            if (addCohort)
+            if (reproductionType == "plant")
             {
-                if (reproductionType == "plant")
-                {
-                    if (!sitecohorts[site].SpeciesEstablishedByPlant.Contains(species))
-                        sitecohorts[site].SpeciesEstablishedByPlant.Add(species);
-                }
-                else if (reproductionType == "serotiny")
-                {
-                    if (!sitecohorts[site].SpeciesEstablishedBySerotiny.Contains(species))
-                        sitecohorts[site].SpeciesEstablishedBySerotiny.Add(species);
-                }
-                else if (reproductionType == "resprout")
-                {
-                    if (!sitecohorts[site].SpeciesEstablishedByResprout.Contains(species))
-                        sitecohorts[site].SpeciesEstablishedByResprout.Add(species);
-                }
-                else if (reproductionType == "seed")
-                {
-                    if (!sitecohorts[site].SpeciesEstablishedBySeed.Contains(species))
-                        sitecohorts[site].SpeciesEstablishedBySeed.Add(species);
-                }
+                if (!sitecohorts[site].SpeciesEstablishedByPlant.Contains(species))
+                    sitecohorts[site].SpeciesEstablishedByPlant.Add(species);
             }
+            else if(reproductionType == "serotiny")
+            {
+                if (!sitecohorts[site].SpeciesEstablishedBySerotiny.Contains(species))
+                    sitecohorts[site].SpeciesEstablishedBySerotiny.Add(species);
+            }
+            else if(reproductionType == "resprout")
+            {
+                if (!sitecohorts[site].SpeciesEstablishedByResprout.Contains(species))
+                    sitecohorts[site].SpeciesEstablishedByResprout.Add(species);
+            }
+            else if(reproductionType == "seed")
+            {
+                if (!sitecohorts[site].SpeciesEstablishedBySeed.Contains(species))
+                    sitecohorts[site].SpeciesEstablishedBySeed.Add(species);
+            }
+
+
         }
         public bool MaturePresent(ISpecies species, ActiveSite site)
         {

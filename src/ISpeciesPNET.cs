@@ -63,14 +63,11 @@ namespace Landis.Extension.Succession.BiomassPnET
         // Wood turnover (g/g/y)
         float TOwood { get; }
 
-        // Establishment factor related to light - fRad value that equates to optimal light for establishment
+        // Establishemnt reduction factor as it depends on suboptimal radiation
         float EstRad { get; }
 
-        // Establishment factor related to moisture - fWater value that equates to optimal water for establishment
+        // Establishemnt reduction factor as it depends on sub- or supraoptimal moisture
         float EstMoist { get; }
-
-        // Mamximum total probability of establishment under optimal conditions
-        float MaxPest { get; }
 
         // Lignin concentration in foliage
         float FolLignin { get; }
@@ -94,7 +91,7 @@ namespace Landis.Extension.Succession.BiomassPnET
         float PsnTMax { get; }
 
         // Foliar nitrogen (gN/gC)
-        float FolN { get; }
+        float FolN { get; set; }
 
         // Vapor pressure deficit response parameter 
         float DVPD1 { get; }
@@ -142,8 +139,28 @@ namespace Landis.Extension.Succession.BiomassPnET
         // If not provided LeafOnMinT = PsnTMin
         float LeafOnMinT { get; }
 
-        // Initial Biomass
-        int InitBiomass { get; }
+        //////////////////////////////////////////////////
+        ///PnET-CN N cycling parameters  Zhou, 8/30/20
+        ///////////////////////////////////////////////////
+        
+        float FolNConRange { get; }//max fractional increase in N concentration
+        float MaxNStore { get; } ////max N content in PlantN pool g N m-2
+
+        float Kho { get; } //// soil decomposition constant, yr-1
+
+        float NImmobA { get; } // N immoblization rate parameter
+        float NImmobB { get; }// linear coefficients for fraction of mineralized N reimmobilized as a function of SOM C:N
+
+        float FolNRetrans { get; } //fraction of foliage N retransfer to plant N, remainder in litter 
+        float FLPctN { get; }  //min % N concentration in foliar litter
+
+        float WLPctN { get; } ////min N % cincentration in wood litter
+
+        float RLPctN { get; } // min N % cincentration in root litter
+
+        float GRespFrac { get; set; } // min N % cincentration in root litter
+
+
 
     }
 }
